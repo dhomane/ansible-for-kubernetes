@@ -2,8 +2,9 @@
 - hosts: localhost
   gather_facts: false
   
-    # Create Kubernetes resources to run Hello Go.
-    - name: Create a Deployment for Hello Go.
+    # Create Kubernetes resources to run Hello Go
+  tasks:
+    - name: Create a Deployment for Hello Go
       k8s:
         state: present
         definition:
