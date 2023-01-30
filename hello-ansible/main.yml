@@ -1,13 +1,54 @@
 ---
-- hosts: localhost
-  gather_facts: false
+- name: Ansible k8s module example
+# Creating the namespace in the kubernete cluster
+  hosts: web
+# Defining the remote server where the k8 module will manage the objects
 
-  tasks:
-    - name: Get the current date.
-      command: date
-      register: current_date
-      changed_when: false
+tasks:
+    - name: Create a k8s namespace
+      k8s:
+        name: ansible-namespace # defining the namespace
+        api_version: v1
+        kind: Namespace
+        state: present    # State=present when you need to create new object
 
-    - name: Print the current date.
-      debug:
-        msg: "{{ current_date.stdout }}"
+# Copying the Pod.yaml and deployment.yaml in the remote node which will be further used to create the pods and deployment in the kubernetes cluster
+
+    - name: copying file with playbook
+      become: true
+      copy:
+        src: /home/ubuntu/ansible_k8s_module_demo/pod.yaml
+        dest: /tmp/pod.yaml
+
+    - name: copying file with playbook
+      become: true
+      copy:
+        src: /home/ubuntu/ansible_k8s_module_demo/deployment.yaml
+        dest: /tmp/deployment.yaml
+
+# Creating a Kubernetes pod in ata-namespace using file stored locally
+
+    - name: Create a pod
+      k8s:
+        state: present      # State=present when you need to create new object
+        namespace: ata-namespace  # defining the namespace
+        src: /tmp/pod.yaml
+
+# Checking the a Kubernetes pods in the ata-namespace
+
+    - name: Get an existing Pods in the kubernetes cluster
+      k8s:
+        api_version: v1
+        kind: pod
+        name: nginx
+        namespace: ata-namespace  # defining the namespace
+      register: web_service
+
+# Creating a Kubernetes deployment in ata-namespace using file stored locally
+
+    - name: Create a deployment
+      k8s:
+        state: present            # State=present when you need to create new object
+        namespace: ata-namespace  # defining the namespace
+        src: /tmp/deployment.yaml  # Source file location
+
